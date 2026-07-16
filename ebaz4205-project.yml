@@ -1,0 +1,53 @@
+header:
+  version: 14
+
+machine: ebaz4205-zynq7
+distro: poky
+
+# Telling kas to build both targets (and defining the mc target ensures BBMULTICONFIG is set)
+target:
+  - core-image-minimal
+
+repos:
+  poky:
+    url: "https://git.yoctoproject.org/poky"
+    refspec: "scarthgap"
+    layers:
+      meta:
+      meta-poky:
+      meta-yocto-bsp:
+
+  meta-arm:
+    url: "https://git.yoctoproject.org/meta-arm"
+    refspec: "scarthgap"
+    layers:
+      meta-arm:
+      meta-arm-toolchain:
+
+  meta-oe:
+    url: "https://git.openembedded.org/meta-openembedded"
+    refspec: "scarthgap"
+    layers:
+      meta-oe:
+
+  meta-xilinx:
+    url: "https://github.com/Xilinx/meta-xilinx.git"
+    refspec: "scarthgap"
+    layers:
+      meta-xilinx-core:
+      meta-xilinx-vendor:
+      meta-xilinx-standalone:
+
+  meta-ebaz4205:
+    url: "https://github.com/ryanatseolaudio/meta-ebaz4205.git"
+    refspec: "scarthgap"
+    layers:
+      meta-ebaz4205:
+
+local_conf_header:
+  licenses: |
+    # Accept the Xilinx license to silence the PMU-ROM QEMU warnings
+    LICENSE_FLAGS_ACCEPTED += "xilinx"
+
+  disk-space-management: |
+    INHERIT += "rm_work"
