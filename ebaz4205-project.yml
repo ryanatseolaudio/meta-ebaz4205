@@ -41,8 +41,6 @@ repos:
   meta-ebaz4205:
     url: "https://github.com/ryanatseolaudio/meta-ebaz4205.git"
     refspec: "scarthgap"
-    layers:
-      meta-ebaz4205:
 
 local_conf_header:
   licenses: |
