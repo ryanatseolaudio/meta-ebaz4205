@@ -1,5 +1,3 @@
-Here is a clean, production-ready `README.md` boilerplate tailored exactly to your EBAZ4205 Yocto project. It reflects the architecture we've built, the `kas` build system, and the bare-metal / kernel configurations.
-
 ---
 
 # Yocto Board Support Package (BSP) for EBAZ4205
