@@ -1,0 +1,56 @@
+From: Ryan <developer@example.com>
+Date: Wed, 15 Jul 2026 23:45:00 -0700
+Subject: [PATCH] include: configs: zynq-common: Add custom boot target and memory limit for EBAZ4205
+
+Adjusts U-Boot to support the EBAZ4205 board specifics:
+1. Restricts DRAM definition to 256MB to prevent memory-wrap crashes.
+2. Sets default boot environment parameters to boot directly from SD Card (mmc 0).
+
+Signed-off-by: Ryan <developer@example.com>
+---
+ include/configs/zynq-common.h | 18 ++++++++++++++++++
+ 1 file changed, 18 insertions(+%)
+
+diff --git a/include/configs/zynq-common.h b/include/configs/zynq-common.h
+index b742d48a1b..89fc32bc42 100644
+--- a/include/configs/zynq-common.h
++++ b/include/configs/zynq-common.h
+@@ -10,6 +10,11 @@
+ #ifndef __CONFIG_ZYNQ_COMMON_H
+ #define __CONFIG_ZYNQ_COMMON_H
+ 
++/* EBAZ4205 only has 256MB DDR3 RAM */
++#undef PHYS_SDRAM_1_SIZE
++#define PHYS_SDRAM_1_SIZE		0x10000000
++
++/* Custom Boot Environment for EBAZ4205 SD Boot */
+ #ifndef EXTRA_ENV_SETTINGS
+ #define EXTRA_ENV_SETTINGS \
+ 	"ethaddr=00:0a:35:00:22:01\0" \
+@@ -17,6 +22,19 @@
+ 	"devicetree_image=ebaz4205.dtb\0" \
+ 	"bootargs=console=ttyPS1,115200 root=/dev/mmcblk0p2 rw rootwait\0" \
++	"sdboot=echo Booting from SD Card (EBAZ4205)... && " \
++		"fatload mmc 0 0x2080000 uImage && " \
++		"fatload mmc 0 0x2000000 ${devicetree_image} && " \
++		"bootm 0x2080000 - 0x2000000\0" \
++	"uenvboot=" \
++		"if run loadbootenv; then " \
++			"echo Loaded environment from ${bootenv};" \
++			"run importbootenv;" \
++		"fi;\0" \
++	"loadbootenv=fatload mmc 0 ${loadbootenv_addr} ${bootenv}\0" \
++	"importbootenv=env import -t ${loadbootenv_addr} ${filesize}\0" \
++	"bootenv=uEnv.txt\0" \
++	"loadbootenv_addr=0x2000000\0"
+ #endif
+ 
+-/* Default bootcmd is now overridden to run our sdboot target */
+-#undef CFG_EXTRA_ENV_SETTINGS
+-#define CFG_EXTRA_ENV_SETTINGS \
+-	EXTRA_ENV_SETTINGS \
+-	"bootcmd=run sdboot\0"
++/* Default fallback boot command */
++#define CONFIG_BOOTCOMMAND	"run sdboot"
+ 
+ #endif /* __CONFIG_ZYNQ_COMMON_H */
