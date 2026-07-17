@@ -1,0 +1,9 @@
+diff --git a/arch/arm/boot/dts/Makefile b/arch/arm/boot/dts/Makefile
+index 212592a5d..3761c572b 100644
+--- a/arch/arm/boot/dts/Makefile
++++ b/arch/arm/boot/dts/Makefile
+@@ -1,3 +1,4 @@
++dtb-$(CONFIG_ARCH_ZYNQ) += ebaz4205.dtb
+ # SPDX-License-Identifier: GPL-2.0
+ dtb-$(CONFIG_ARCH_ALPINE) += \
+ 	alpine-db.dtb

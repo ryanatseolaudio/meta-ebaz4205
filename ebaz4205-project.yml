@@ -4,9 +4,15 @@ header:
 machine: ebaz4205-zynq7
 distro: poky
 
-# Telling kas to build both targets (and defining the mc target ensures BBMULTICONFIG is set)
+# Make sure "mc:fsbl:zynq-fsbl" is not present here!
 target:
   - core-image-minimal
+  - mc:fsbl-fw:fsbl-firmware
+
+local_conf_header:
+  multiconfig: |
+    BBMULTICONFIG = "fsbl-fw"
+    MCTARGET_fsbl-fw = "ebaz4205-zynq7"
 
 repos:
   poky:
@@ -32,7 +38,7 @@ repos:
 
   meta-xilinx:
     url: "https://github.com/Xilinx/meta-xilinx.git"
-    refspec: "scarthgap"
+    refspec: "rel-v2026.1"
     layers:
       meta-xilinx-core:
       meta-xilinx-vendor:
@@ -48,6 +54,7 @@ local_conf_header:
   licenses: |
     # Accept the Xilinx license to silence the PMU-ROM QEMU warnings
     LICENSE_FLAGS_ACCEPTED += "xilinx"
+    #    XILINX_WITH_ESW += "0"
 
   disk-space-management: |
     INHERIT += "rm_work"
