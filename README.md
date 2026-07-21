@@ -1,5 +1,3 @@
-Here is the updated **`README.md`** reflecting your new layer directory structure, the transition to **U-Boot SPL** (removing the standalone Xilinx FSBL references), and the simplified device-tree setup:
-
 ---
 
 # Yocto Board Support Package (BSP) for EBAZ4205
@@ -14,7 +12,7 @@ The EBAZ4205 is a highly cost-effective, surplus mining control board featuring 
 
 * **Target Machine:** `ebaz4205-zynq7` (Cortex-A9 Zynq-7000)
 * **Memory Optimization:** Restricts memory footprint to physical **256MB DDR3** boundary via U-Boot/Kernel patches.
-* **Modern Boot Chain:** Generates a unified `BOOT.bin` using **U-Boot SPL** (no Xilinx FSBL required) configured with custom boot hooks for automated SD Card loading.
+* **Modern Boot Chain:** Generates a unified `BOOT.bin` using Xilinx FSBL.
 * **Custom Device Tree:** Standalone `device-tree` recipe compiling custom board DTS targeting 256MB DDR configurations.
 * **Declarative Builds:** Fully managed via `kas` for reproducible, containerized compilation using Yocto Scarthgap / 2026.1 releases.
 
@@ -24,24 +22,23 @@ The EBAZ4205 is a highly cost-effective, surplus mining control board featuring 
 
 ```text
 .
-├── ebaz4205-project.yml                  # Kas configuration file (main build entrypoint)
-└── meta-ebaz4205/                        # Repository root
-    └── meta-ebaz4205/                    # Custom Yocto Layer
+├── ebaz4205-project.yml                   # Kas configuration file (main build entrypoint)
+└── meta-ebaz4205/                         # Repository root
+    └── meta-ebaz4205/                     # Custom Yocto Layer
         ├── conf/
         │   ├── layer.conf
         │   └── machine/
-        │       └── ebaz4205-zynq7.conf   # Machine configuration file
+        │       └── ebaz4205-zynq7.conf    # Machine configuration file
         ├── recipes-bsp/
         │   ├── device-tree/
-        │   │   ├── device-tree.bb        # Standalone Device Tree recipe
+        │   │   ├── device-tree.bb         # Standalone Device Tree recipe
         │   │   └── files/
-        │   │       └── ebaz4205.dts      # Board Device Tree Source
+        │   │       └── ebaz4205.dts       # Board Device Tree Source
         │   └── u-boot/
-        │       └── u-boot-xlnx_%.bbappend# U-Boot build customization
-        └── recipes-core/
-            └── images/
-                └── core-image-minimal.bbappend
-
+        │       └── u-boot-xlnx_%.bbappend # U-Boot build customization
+        └── recipes-kernel/
+            └── linux/
+                └── linux-xlnx_%.bbappend  # Placeholder
 ```
 
 ---
