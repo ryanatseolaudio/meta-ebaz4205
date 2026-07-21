@@ -22,23 +22,22 @@ The EBAZ4205 is a highly cost-effective, surplus mining control board featuring 
 
 ```text
 .
-├── ebaz4205-project.yml                   # Kas configuration file (main build entrypoint)
-└── meta-ebaz4205/                         # Repository root
-    └── meta-ebaz4205/                     # Custom Yocto Layer
-        ├── conf/
-        │   ├── layer.conf
-        │   └── machine/
-        │       └── ebaz4205-zynq7.conf    # Machine configuration file
-        ├── recipes-bsp/
-        │   ├── device-tree/
-        │   │   ├── device-tree.bb         # Standalone Device Tree recipe
-        │   │   └── files/
-        │   │       └── ebaz4205.dts       # Board Device Tree Source
-        │   └── u-boot/
-        │       └── u-boot-xlnx_%.bbappend # U-Boot build customization
-        └── recipes-kernel/
-            └── linux/
-                └── linux-xlnx_%.bbappend  # Placeholder
+├── ebaz4205-project.yml               # Kas configuration file (main build entrypoint)
+└── meta-ebaz4205/                     # Repository root
+    ├── conf/
+    │   ├── layer.conf
+    │   └── machine/
+    │       └── ebaz4205-zynq7.conf    # Machine configuration file
+    ├── recipes-bsp/
+    │   ├── device-tree/
+    │   │   ├── device-tree.bb         # Standalone Device Tree recipe
+    │   │   └── files/
+    │   │       └── ebaz4205.dts       # Board Device Tree Source
+    │   └── u-boot/
+    │       └── u-boot-xlnx_%.bbappend # U-Boot build customization
+    └── recipes-kernel/
+        └── linux/
+            └── linux-xlnx_%.bbappend  # Placeholder
 ```
 
 ---
@@ -85,9 +84,9 @@ Format your MicroSD card with two partitions:
 Copy the essential boot binaries to the first partition:
 
 ```bash
-cp build/tmp-glibc/deploy/images/ebaz4205-zynq7/BOOT.bin /media/$USER/BOOT/
-cp build/tmp-glibc/deploy/images/ebaz4205-zynq7/uImage /media/$USER/BOOT/
-cp build/tmp-glibc/deploy/images/ebaz4205-zynq7/devicetree.dtb /media/$USER/BOOT/
+cp build/tmp-glibc/deploy/images/ebaz4205-zynq7/BOOT.bin /dev/sdb1/
+cp build/tmp-glibc/deploy/images/ebaz4205-zynq7/uImage /dev/sdb1/
+cp build/tmp-glibc/deploy/images/ebaz4205-zynq7/devicetree.dtb /dev/sdb1/
 
 ```
 
@@ -96,7 +95,7 @@ cp build/tmp-glibc/deploy/images/ebaz4205-zynq7/devicetree.dtb /media/$USER/BOOT
 Extract your compiled root filesystem archive directly to the second partition:
 
 ```bash
-sudo tar -xf build/tmp-glibc/deploy/images/ebaz4205-zynq7/core-image-minimal-ebaz4205-zynq7.rootfs.tar.gz -C /media/$USER/ROOTFS/
+sudo tar -xf build/tmp-glibc/deploy/images/ebaz4205-zynq7/core-image-minimal-ebaz4205-zynq7.rootfs.tar.gz -C /dev/sdb2/
 sync
 
 ```
