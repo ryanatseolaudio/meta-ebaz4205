@@ -1,3 +1,5 @@
+Here is the updated **`README.md`** reflecting your new layer directory structure, the transition to **U-Boot SPL** (removing the standalone Xilinx FSBL references), and the simplified device-tree setup:
+
 ---
 
 # Yocto Board Support Package (BSP) for EBAZ4205
@@ -11,13 +13,10 @@ The EBAZ4205 is a highly cost-effective, surplus mining control board featuring 
 ## 🛠 Features Included
 
 * **Target Machine:** `ebaz4205-zynq7` (Cortex-A9 Zynq-7000)
-* **Memory Optimization:** Restricts memory footprint to physical **256MB DDR3** boundary via U-Boot/Kernel patches to prevent memory-wrap crashes.
-* **Boot Chain:** Generates a complete, bootable `BOOT.bin` containing:
-* First Stage Bootloader (FSBL)
-* U-Boot Bootloader configured with custom boot hooks for automated SD Card loading.
-
-
-* **Declarative Builds:** Fully managed via `kas` for reproducible, containerized compilation.
+* **Memory Optimization:** Restricts memory footprint to physical **256MB DDR3** boundary via U-Boot/Kernel patches.
+* **Modern Boot Chain:** Generates a unified `BOOT.bin` using **U-Boot SPL** (no Xilinx FSBL required) configured with custom boot hooks for automated SD Card loading.
+* **Custom Device Tree:** Standalone `device-tree` recipe compiling custom board DTS targeting 256MB DDR configurations.
+* **Declarative Builds:** Fully managed via `kas` for reproducible, containerized compilation using Yocto Scarthgap / 2026.1 releases.
 
 ---
 
@@ -25,25 +24,23 @@ The EBAZ4205 is a highly cost-effective, surplus mining control board featuring 
 
 ```text
 .
-├── ebaz4205-project.yml          # Kas configuration file (main build entrypoint)
-└── meta-ebaz4205/                # Custom Yocto Layer for EBAZ4205
-    ├── conf/
-    │   ├── layer.conf
-    │   └── machine/
-    │       └── ebaz4205-zynq7.conf  # Machine configuration file
-    ├── recipes-bsp/
-    │   └── u-boot/
-    │       ├── files/
-    │       │   └── 0001-ebaz4205-board-config.patch  # SD Boot & Memory Limit patch
-    │       └── u-boot-xlnx_%.bbappend
-    ├── recipes-kernel/
-    │   └── linux/
-    │       ├── files/
-    │       │   └── ebaz4205.dts      # Custom Board Device Tree (DTS)
-    │       └── linux-xlnx_%.bbappend
-    └── recipes-core/
-        └── images/
-            └── core-image-minimal.bbappend
+├── ebaz4205-project.yml                  # Kas configuration file (main build entrypoint)
+└── meta-ebaz4205/                        # Repository root
+    └── meta-ebaz4205/                    # Custom Yocto Layer
+        ├── conf/
+        │   ├── layer.conf
+        │   └── machine/
+        │       └── ebaz4205-zynq7.conf   # Machine configuration file
+        ├── recipes-bsp/
+        │   ├── device-tree/
+        │   │   ├── device-tree.bb        # Standalone Device Tree recipe
+        │   │   └── files/
+        │   │       └── ebaz4205.dts      # Board Device Tree Source
+        │   └── u-boot/
+        │       └── u-boot-xlnx_%.bbappend# U-Boot build customization
+        └── recipes-core/
+            └── images/
+                └── core-image-minimal.bbappend
 
 ```
 
@@ -55,7 +52,7 @@ This project uses **Kas** to manage layers and automate containerized builds. Yo
 
 ### Prerequisites
 
-Make sure you have Docker/Podman installed and the `kas-container` tool downloaded:
+Make sure you have Docker or Podman installed and the `kas-container` script downloaded:
 
 ```bash
 wget https://raw.githubusercontent.com/siemens/kas/master/kas-container
@@ -65,7 +62,7 @@ chmod +x kas-container
 
 ### Run the Build
 
-Kick off the build process by pointing the runner at our project configuration file:
+Kick off the build process by pointing `kas-container` at the project configuration file:
 
 ```bash
 ./kas-container build ebaz4205-project.yml
@@ -77,11 +74,11 @@ Kick off the build process by pointing the runner at our project configuration f
 ## 💾 Flashing to SD Card
 
 Once compilation completes, the build artifacts will be deployed inside:
-`build/tmp/deploy/images/ebaz4205-zynq7/`
+`build/tmp-glibc/deploy/images/ebaz4205-zynq7/`
 
 ### 1. Partition Your SD Card
 
-Format your SD card with two partitions:
+Format your MicroSD card with two partitions:
 
 * **Partition 1:** FAT32 (at least 50MB, flagged as bootable).
 * **Partition 2:** ext4 (for the root filesystem).
@@ -91,9 +88,9 @@ Format your SD card with two partitions:
 Copy the essential boot binaries to the first partition:
 
 ```bash
-cp build/tmp/deploy/images/ebaz4205-zynq7/BOOT.bin /media/user/BOOT/
-cp build/tmp/deploy/images/ebaz4205-zynq7/uImage /media/user/BOOT/
-cp build/tmp/deploy/images/ebaz4205-zynq7/ebaz4205.dtb /media/user/BOOT/
+cp build/tmp-glibc/deploy/images/ebaz4205-zynq7/BOOT.bin /media/$USER/BOOT/
+cp build/tmp-glibc/deploy/images/ebaz4205-zynq7/uImage /media/$USER/BOOT/
+cp build/tmp-glibc/deploy/images/ebaz4205-zynq7/devicetree.dtb /media/$USER/BOOT/
 
 ```
 
@@ -102,7 +99,7 @@ cp build/tmp/deploy/images/ebaz4205-zynq7/ebaz4205.dtb /media/user/BOOT/
 Extract your compiled root filesystem archive directly to the second partition:
 
 ```bash
-sudo tar -xf build/tmp/deploy/images/ebaz4205-zynq7/core-image-minimal-ebaz4205-zynq7.rootfs.tar.gz -C /media/user/ROOTFS/
+sudo tar -xf build/tmp-glibc/deploy/images/ebaz4205-zynq7/core-image-minimal-ebaz4205-zynq7.rootfs.tar.gz -C /media/$USER/ROOTFS/
 sync
 
 ```
@@ -111,7 +108,13 @@ sync
 
 ## 🔌 Hardware Setup (Booting)
 
-1. Insert the prepared SD card into your card slot mod.
-2. Connect a USB-to-UART converter to the EBAZ4205 debug port (typically J8/J7 depending on your exact board revision).
-3. Open your favorite serial monitor (e.g., `minicom`, `screen`, or `PuTTY` set to **115200 baud, 8N1**).
-4. Power up the board. U-Boot will execute, automatically trigger `sdboot`, and bring you to a Linux login shell!
+1. Insert the prepared MicroSD card into your hardware card slot.
+2. Connect a USB-to-UART converter to the EBAZ4205 debug serial header (`115200` baud, 8N1).
+3. Open your favorite serial terminal (e.g., `minicom`, `screen`, or `picocom`):
+```bash
+picocom -b 115200 /dev/ttyUSB0
+
+```
+
+
+4. Power up the board. U-Boot SPL will load U-Boot proper, execute `sdboot`, load the Linux kernel and devicetree, and boot to a root prompt!
