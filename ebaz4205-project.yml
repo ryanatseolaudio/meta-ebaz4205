@@ -2,17 +2,10 @@ header:
   version: 14
 
 machine: ebaz4205-zynq7
-distro: poky
+distro: nodistro
 
-# Make sure "mc:fsbl:zynq-fsbl" is not present here!
 target:
   - core-image-minimal
-  - mc:fsbl-fw:fsbl-firmware
-
-local_conf_header:
-  multiconfig: |
-    BBMULTICONFIG = "fsbl-fw"
-    MCTARGET_fsbl-fw = "ebaz4205-zynq7"
 
 repos:
   poky:
@@ -21,7 +14,6 @@ repos:
     layers:
       meta:
       meta-poky:
-      meta-yocto-bsp:
 
   meta-arm:
     url: "https://git.yoctoproject.org/meta-arm"
@@ -41,8 +33,8 @@ repos:
     refspec: "rel-v2026.1"
     layers:
       meta-xilinx-core:
+      meta-xilinx-bsp:
       meta-xilinx-vendor:
-      meta-xilinx-standalone:
 
   meta-ebaz4205:
     url: "https://github.com/ryanatseolaudio/meta-ebaz4205.git"
@@ -51,10 +43,30 @@ repos:
       meta-ebaz4205:
 
 local_conf_header:
-  licenses: |
-    # Accept the Xilinx license to silence the PMU-ROM QEMU warnings
-    LICENSE_FLAGS_ACCEPTED += "xilinx"
-    #    XILINX_WITH_ESW += "0"
+  ebaz_overrides: |
+    # 1. Forcefully disable multiconfig setup
+    BBMULTICONFIG = ""
+    BBMULTICONFIG:forcevariable = ""
 
-  disk-space-management: |
+    # 2. Mask broken upstream recipes
+    BBMASK += "meta-xilinx-core/recipes-bsp/u-boot/u-boot-xlnx-uenv.bb"
+    BBMASK += "meta-xilinx-core/recipes-bsp/fsbl/fsbl_%.bb"
+
+    # 3. Provider Preferences
+    PREFERRED_PROVIDER_virtual/bootloader = "u-boot-xlnx"
+    PREFERRED_PROVIDER_u-boot = "u-boot-xlnx"
+    PREFERRED_PROVIDER_u-boot-tools = "u-boot-xlnx-tools"
+    PREFERRED_PROVIDER_virtual/fsbl = ""
+
+    # Pull in bash or whitelist shell dependencies for xz
+    VIRTUAL-RUNTIME_bash = "bash"
+
+    # Ignore file-rdeps QA check specifically for xz
+    INSANE_SKIP:xz += "file-rdeps"
+
+  licenses: |
+    LICENSE_FLAGS_ACCEPTED += "xilinx"
+
+  disk_space_management: |
     INHERIT += "rm_work"
+    RM_WORK_EXCLUDE += "u-boot-xlnx"
